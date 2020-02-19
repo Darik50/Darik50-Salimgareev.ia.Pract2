@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Collections;
+using System.Diagnostics;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace Pract2
 {
@@ -15,15 +18,18 @@ namespace Pract2
         /// </summary>
         static void Main(string[] args)
         {
-            try
-            {
+            //try
+            //{
                 InfoSoftware(@"C:\Users\Ильдар\Desktop\input.txt");
                 Console.ReadKey();
-            }
-            catch
-            {
-                Console.WriteLine("Error");
-            }
+
+            //}
+            //catch
+            //{
+            //    Console.WriteLine("Error");
+            //    Console.ReadKey();
+            //}
+
         }
         /// <summary>
         /// Этот метод считывает данные с файла в лист
@@ -32,7 +38,8 @@ namespace Pract2
         /// <param name="list">Лист для хранения полученных данных</param>
         /// <returns>Лист для хранения полученных данных</returns>
         static List<string> Input(string txt, List<string> list)
-        {            
+        {
+            Trace.WriteLine("Info: Вызов метода Input");
             using (StreamReader sr = new StreamReader(txt, System.Text.Encoding.Default))
             {
                 string line;
@@ -50,6 +57,7 @@ namespace Pract2
         /// <param name="s">Строка с информации о текущем ПО</param>
         static void ReadInfo(ArrayList array, string s)
         {
+            Trace.WriteLine("Info: Вызов метода ReadInfo");
             if (s.Substring(0, 9) == "Свободное")
             {
                 int i = 0;
@@ -176,6 +184,7 @@ namespace Pract2
         /// <param name="txt">Путь к файлу</param>
         static int InfoSoftware(string txt)
         {
+            Trace.WriteLine("Info: Вызов метода InfoSoftware");
             List<string> list = new List<string>();
             list = Input(txt, list);
             int n = Convert.ToInt32(list[0]);
@@ -184,20 +193,36 @@ namespace Pract2
                 string line = list[i];
                 ReadInfo(array, line);                
             }
+            List<Software> listSof = new List<Software>();
             foreach (object cl in array)
             {
                 if (cl is FreeSoft)
                 {
                     Console.WriteLine(((FreeSoft)cl).type + ' ' + ((FreeSoft)cl).name + ' ' + ((FreeSoft)cl).manufacturer);
+                    listSof.Add((FreeSoft)cl);
                 }
                 if (cl is FreeCondSoft)
                 {
                     Console.WriteLine(((FreeCondSoft)cl).type + ' ' + ((FreeCondSoft)cl).name + ' ' + ((FreeCondSoft)cl).manufacturer + ' ' + ((FreeCondSoft)cl).dateSet.ToShortDateString() + ' ' + ((FreeCondSoft)cl).dateTrial);
+                    listSof.Add((FreeCondSoft)cl);
                 }
                 if (cl is CommercialSoft)
                 {
                     Console.WriteLine(((CommercialSoft)cl).type + ' ' + ((CommercialSoft)cl).name + ' ' + ((CommercialSoft)cl).manufacturer + ' ' + ((CommercialSoft)cl).dateSet.ToShortDateString() + ' ' + ((CommercialSoft)cl).dateUsed);
+                    listSof.Add((CommercialSoft)cl);
                 }
+            }
+            //генерации XML-файла, содержащего информацию о созданных Вами объектах
+            XmlSerializer formatter = new XmlSerializer(typeof(List<Software>));
+            File.Delete("Software");
+            using (FileStream fs = new FileStream("Software.xml", FileMode.OpenOrCreate))
+            {
+                formatter.Serialize(fs, listSof);
+            }
+
+            using (FileStream fs = new FileStream("Software.xml", FileMode.OpenOrCreate))
+            {
+                List<Software> newSoftware = (List<Software>)formatter.Deserialize(fs);
             }
             Console.WriteLine("ПО допустимое к использованию:");
             foreach (object cl in array)
@@ -206,11 +231,11 @@ namespace Pract2
                 {
                     Console.WriteLine(((FreeSoft)cl).name);
                 }
-                if (cl is FreeCondSoft && (((FreeCondSoft)cl).dateSet).AddDays(((FreeCondSoft)cl).dateTrial) >= DateTime.Today)
+                if (cl is FreeCondSoft && (((FreeCondSoft)cl).termOfUse()))
                 {
                     Console.WriteLine(((FreeCondSoft)cl).name);
                 }
-                if (cl is CommercialSoft && (((CommercialSoft)cl).dateSet).AddDays(((CommercialSoft)cl).dateUsed) >= DateTime.Today)
+                if (cl is CommercialSoft && (((CommercialSoft)cl).termOfUse()))
                 {
                     Console.WriteLine(((CommercialSoft)cl).name);
                 }
@@ -221,8 +246,14 @@ namespace Pract2
     /// <summary>
     /// Этот класс содержит тип, имя и производителя ПО
     /// </summary>
-    abstract class Software
+    [Serializable]
+    [XmlInclude(typeof(FreeSoft))]
+    [XmlInclude(typeof(FreeCondSoft))]
+    [XmlInclude(typeof(CommercialSoft))]
+    public abstract class Software
     {
+        public Software()
+        { }
         public string type { get; set; }
         public string name { get; set; }
         public string manufacturer { get; set; }
@@ -231,23 +262,50 @@ namespace Pract2
     /// <summary>
     /// Этот класс содержит тип, имя и производителя ПО
     /// </summary>
-    class FreeSoft : Software
+    [Serializable]
+    public class FreeSoft : Software
     {
+        public FreeSoft()
+        { }
     }
     /// <summary>
     /// Этот класс содержит тип, имя и производителя ПО + дата установки и время работы триал версии
     /// </summary>
-    class FreeCondSoft : Software
+    [Serializable]
+    public class FreeCondSoft : Software
     {
+        public FreeCondSoft()
+        { }
         public DateTime dateSet { get; set; }
         public int dateTrial { get; set; }
+        public bool termOfUse()
+        {
+            Trace.WriteLine("Info: Вызов метода termOfUse из класса FreeCondSoft");
+            if (dateSet.AddDays(dateTrial) >= DateTime.Today)
+            {
+                return true;
+            }
+            return false;
+        }
     }
     /// <summary>
     /// Этот класс содержит тип, имя и производителя ПО + дата установки и время работы ПО
     /// </summary>
-    class CommercialSoft : Software
+    [Serializable]
+    public class CommercialSoft : Software
     {
+        public CommercialSoft()
+        { }
         public DateTime dateSet { get; set; }
         public int dateUsed { get; set; }
+        public bool termOfUse()
+        {
+            Trace.WriteLine("Info: Вызов метода termOfUse из класса CommercialSoft");
+            if (dateSet.AddDays(dateUsed) >= DateTime.Today)
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }
