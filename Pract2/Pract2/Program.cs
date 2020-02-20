@@ -18,17 +18,17 @@ namespace Pract2
         /// </summary>
         static void Main(string[] args)
         {
-            //try
-            //{
+            try
+            {
                 InfoSoftware(@"C:\Users\Ильдар\Desktop\input.txt");
                 Console.ReadKey();
 
-            //}
-            //catch
-            //{
-            //    Console.WriteLine("Error");
-            //    Console.ReadKey();
-            //}
+            }
+            catch
+            {
+                Console.WriteLine("Error");
+                Console.ReadKey();
+            }
 
         }
         /// <summary>
@@ -40,13 +40,20 @@ namespace Pract2
         static List<string> Input(string txt, List<string> list)
         {
             Trace.WriteLine("Info: Вызов метода Input");
-            using (StreamReader sr = new StreamReader(txt, System.Text.Encoding.Default))
-            {
-                string line;
-                while ((line = sr.ReadLine()) != null)
+            try
+            {                
+                using (StreamReader sr = new StreamReader(txt, System.Text.Encoding.Default))
                 {
-                    list.Add(line);
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        list.Add(line);
+                    }
                 }
+            }
+            catch
+            {
+                Trace.WriteLine("Info: В методе Input произошла ошибка");
             }
             return list;
         }
@@ -58,36 +65,9 @@ namespace Pract2
         static void ReadInfo(ArrayList array, string s)
         {
             Trace.WriteLine("Info: Вызов метода ReadInfo");
-            if (s.Substring(0, 9) == "Свободное")
+            try
             {
-                int i = 0;
-                string type = "";
-                while (s[i] != ',')
-                {
-                    type += s[i];
-                    i++;
-                }
-                i++;
-                i++;
-                string name = "";
-                while(s[i] != ',')
-                {
-                    name += s[i];
-                    i++;
-                }
-                i++;
-                i++;
-                string manufacturer = "";
-                while (i < s.Length)
-                {
-                    manufacturer += s[i];
-                    i++;
-                }
-                array.Add(new FreeSoft { name = name, manufacturer = manufacturer, type = type });                
-            }
-            else
-            {
-                if (s.Substring(0, 18) == "Условно-бесплатное")
+                if (s.Substring(0, 9) == "Свободное")
                 {
                     int i = 0;
                     string type = "";
@@ -107,32 +87,16 @@ namespace Pract2
                     i++;
                     i++;
                     string manufacturer = "";
-                    while (s[i] != ',')
+                    while (i < s.Length)
                     {
                         manufacturer += s[i];
                         i++;
                     }
-                    i++;
-                    i++;
-                    string dateSet = "";
-                    while (s[i] != ',')
-                    {
-                        dateSet += s[i];
-                        i++;
-                    }
-                    i++;
-                    i++;
-                    string dateTrial = "";
-                    while (i < s.Length)
-                    {
-                        dateTrial += s[i];
-                        i++;
-                    }
-                    array.Add(new FreeCondSoft { name = name, manufacturer = manufacturer, type = type, dateSet = DateTime.Parse(dateSet), dateTrial = Convert.ToInt32(dateTrial) });
+                    array.Add(new FreeSoft { name = name, manufacturer = manufacturer, type = type });
                 }
                 else
                 {
-                    if (s.Substring(0, 12) == "Коммерческое")
+                    if (s.Substring(0, 18) == "Условно-бесплатное")
                     {
                         int i = 0;
                         string type = "";
@@ -167,15 +131,65 @@ namespace Pract2
                         }
                         i++;
                         i++;
-                        string dateUsed = "";
+                        string dateTrial = "";
                         while (i < s.Length)
                         {
-                            dateUsed += s[i];
+                            dateTrial += s[i];
                             i++;
                         }
-                        array.Add(new CommercialSoft { name = name, manufacturer = manufacturer, type = type, dateSet = DateTime.Parse(dateSet), dateUsed = Convert.ToInt32(dateUsed) });
-                    }               
+                        array.Add(new FreeCondSoft { name = name, manufacturer = manufacturer, type = type, dateSet = DateTime.Parse(dateSet), dateTrial = Convert.ToInt32(dateTrial) });
+                    }
+                    else
+                    {
+                        if (s.Substring(0, 12) == "Коммерческое")
+                        {
+                            int i = 0;
+                            string type = "";
+                            while (s[i] != ',')
+                            {
+                                type += s[i];
+                                i++;
+                            }
+                            i++;
+                            i++;
+                            string name = "";
+                            while (s[i] != ',')
+                            {
+                                name += s[i];
+                                i++;
+                            }
+                            i++;
+                            i++;
+                            string manufacturer = "";
+                            while (s[i] != ',')
+                            {
+                                manufacturer += s[i];
+                                i++;
+                            }
+                            i++;
+                            i++;
+                            string dateSet = "";
+                            while (s[i] != ',')
+                            {
+                                dateSet += s[i];
+                                i++;
+                            }
+                            i++;
+                            i++;
+                            string dateUsed = "";
+                            while (i < s.Length)
+                            {
+                                dateUsed += s[i];
+                                i++;
+                            }
+                            array.Add(new CommercialSoft { name = name, manufacturer = manufacturer, type = type, dateSet = DateTime.Parse(dateSet), dateUsed = Convert.ToInt32(dateUsed) });
+                        }
+                    }
                 }
+            }
+            catch
+            {
+                Trace.WriteLine("Info: В методе ReadInfo произошла ошибка");
             }
         }
         /// <summary>
@@ -185,60 +199,68 @@ namespace Pract2
         static int InfoSoftware(string txt)
         {
             Trace.WriteLine("Info: Вызов метода InfoSoftware");
-            List<string> list = new List<string>();
-            list = Input(txt, list);
-            int n = Convert.ToInt32(list[0]);
-            ArrayList array = new ArrayList();
-            for (int i = 1; i < n+1; i++) {
-                string line = list[i];
-                ReadInfo(array, line);                
-            }
-            List<Software> listSof = new List<Software>();
-            foreach (object cl in array)
+            try
             {
-                if (cl is FreeSoft)
+                List<string> list = new List<string>();
+                list = Input(txt, list);
+                int n = Convert.ToInt32(list[0]);
+                ArrayList array = new ArrayList();
+                for (int i = 1; i < n + 1; i++)
                 {
-                    Console.WriteLine(((FreeSoft)cl).type + ' ' + ((FreeSoft)cl).name + ' ' + ((FreeSoft)cl).manufacturer);
-                    listSof.Add((FreeSoft)cl);
+                    string line = list[i];
+                    ReadInfo(array, line);
                 }
-                if (cl is FreeCondSoft)
+                List<Software> listSof = new List<Software>();
+                foreach (object cl in array)
                 {
-                    Console.WriteLine(((FreeCondSoft)cl).type + ' ' + ((FreeCondSoft)cl).name + ' ' + ((FreeCondSoft)cl).manufacturer + ' ' + ((FreeCondSoft)cl).dateSet.ToShortDateString() + ' ' + ((FreeCondSoft)cl).dateTrial);
-                    listSof.Add((FreeCondSoft)cl);
+                    if (cl is FreeSoft)
+                    {
+                        Console.WriteLine(((FreeSoft)cl).type + ' ' + ((FreeSoft)cl).name + ' ' + ((FreeSoft)cl).manufacturer);
+                        listSof.Add((FreeSoft)cl);
+                    }
+                    if (cl is FreeCondSoft)
+                    {
+                        Console.WriteLine(((FreeCondSoft)cl).type + ' ' + ((FreeCondSoft)cl).name + ' ' + ((FreeCondSoft)cl).manufacturer + ' ' + ((FreeCondSoft)cl).dateSet.ToShortDateString() + ' ' + ((FreeCondSoft)cl).dateTrial);
+                        listSof.Add((FreeCondSoft)cl);
+                    }
+                    if (cl is CommercialSoft)
+                    {
+                        Console.WriteLine(((CommercialSoft)cl).type + ' ' + ((CommercialSoft)cl).name + ' ' + ((CommercialSoft)cl).manufacturer + ' ' + ((CommercialSoft)cl).dateSet.ToShortDateString() + ' ' + ((CommercialSoft)cl).dateUsed);
+                        listSof.Add((CommercialSoft)cl);
+                    }
                 }
-                if (cl is CommercialSoft)
+                //генерации XML-файла, содержащего информацию о созданных Вами объектах
+                XmlSerializer formatter = new XmlSerializer(typeof(List<Software>));
+                File.Delete("Software");
+                using (FileStream fs = new FileStream("Software.xml", FileMode.OpenOrCreate))
                 {
-                    Console.WriteLine(((CommercialSoft)cl).type + ' ' + ((CommercialSoft)cl).name + ' ' + ((CommercialSoft)cl).manufacturer + ' ' + ((CommercialSoft)cl).dateSet.ToShortDateString() + ' ' + ((CommercialSoft)cl).dateUsed);
-                    listSof.Add((CommercialSoft)cl);
+                    formatter.Serialize(fs, listSof);
                 }
-            }
-            //генерации XML-файла, содержащего информацию о созданных Вами объектах
-            XmlSerializer formatter = new XmlSerializer(typeof(List<Software>));
-            File.Delete("Software");
-            using (FileStream fs = new FileStream("Software.xml", FileMode.OpenOrCreate))
-            {
-                formatter.Serialize(fs, listSof);
-            }
 
-            using (FileStream fs = new FileStream("Software.xml", FileMode.OpenOrCreate))
-            {
-                List<Software> newSoftware = (List<Software>)formatter.Deserialize(fs);
+                using (FileStream fs = new FileStream("Software.xml", FileMode.OpenOrCreate))
+                {
+                    List<Software> newSoftware = (List<Software>)formatter.Deserialize(fs);
+                }
+                Console.WriteLine("ПО допустимое к использованию:");
+                foreach (object cl in array)
+                {
+                    if (cl is FreeSoft)
+                    {
+                        Console.WriteLine(((FreeSoft)cl).name);
+                    }
+                    if (cl is FreeCondSoft && (((FreeCondSoft)cl).termOfUse()))
+                    {
+                        Console.WriteLine(((FreeCondSoft)cl).name);
+                    }
+                    if (cl is CommercialSoft && (((CommercialSoft)cl).termOfUse()))
+                    {
+                        Console.WriteLine(((CommercialSoft)cl).name);
+                    }
+                }
             }
-            Console.WriteLine("ПО допустимое к использованию:");
-            foreach (object cl in array)
+            catch
             {
-                if (cl is FreeSoft)
-                {
-                    Console.WriteLine(((FreeSoft)cl).name);
-                }
-                if (cl is FreeCondSoft && (((FreeCondSoft)cl).termOfUse()))
-                {
-                    Console.WriteLine(((FreeCondSoft)cl).name);
-                }
-                if (cl is CommercialSoft && (((CommercialSoft)cl).termOfUse()))
-                {
-                    Console.WriteLine(((CommercialSoft)cl).name);
-                }
+                Trace.WriteLine("Info: В методе InfoSoftware произошла ошибка");
             }
             return 0;
         }
