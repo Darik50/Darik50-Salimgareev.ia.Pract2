@@ -198,6 +198,7 @@ namespace Pract2
         /// <param name="txt">Путь к файлу</param>
         static int InfoSoftware(string txt)
         {
+            Console.ReadKey();
             Trace.WriteLine("Info: Вызов метода InfoSoftware");
             try
             {
